@@ -54,21 +54,14 @@
             // Function to handle redirects based on extracted IDs
             function handleRedirect(url) {
                 if (!url) {
-                    document.getElementById('redirectInfo').innerHTML = `
-                        <p>No redirect parameters found.</p>
-                        <p>Add a URL parameter to redirect. Example:</p>
-                        <code>index.html?https://app.runn.io/projects/[[runn-project-156102]]</code>
-                    `;
+                    alert(`No redirect parameters found.`);
                     return;
                 }
                 
                 const extractedIds = extractId(url);
                 
                 if (extractedIds.length === 0) {
-                    document.getElementById('redirectInfo').innerHTML = `
-                        <p>No valid redirect patterns found in: <code>${url}</code></p>
-                        <p>Use the pattern <code>[[type-entity-id]]</code> in your URL.</p>
-                    `;
+                    alert(`No valid redirect patterns found in: ${url}. Use the pattern <code>[[type-entity-id]]</code> in your URL.`;
                     return;
                 }
                 
@@ -78,19 +71,7 @@
                 
                 // Replace the pattern with just the ID
                 redirectUrl = redirectUrl.replace(match.original, match.id);
-                
-                document.getElementById('redirectInfo').innerHTML = `
-                    <p>Redirecting to: <code>${redirectUrl}</code></p>
-                    <p>Details:</p>
-                    <ul>
-                        <li>Original pattern: <code>${match.original}</code></li>
-                        <li>Extracted ID: <code>${match.id}</code></li>
-                        <li>Type: <code>${match.type}</code></li>
-                        <li>Entity: <code>${match.entityType}</code></li>
-                    </ul>
-                    <p>Redirecting in 2 seconds...</p>
-                `;
-                
+                                
                 // Perform the redirect after a short delay
                 setTimeout(() => {
                     window.location.href = redirectUrl;
