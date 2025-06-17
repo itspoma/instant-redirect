@@ -1,87 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirect Service</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting...</title>
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-P2VNLVMZR6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-P2VNLVMZR6');
+
+  // Function to track custom events
+  function trackEvent(eventCategory, eventAction, eventLabel) {
+    gtag('event', eventAction, {
+      'event_category': eventCategory,
+      'event_label': eventLabel
+    });
+  }
+</script>
 <body>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Function to get URL parameters
-            function getUrlParams() {
-                const params = {};
-                const queryString = window.location.search.substring(1);
-                
-                if (queryString) {
-                    // We're treating the entire query string as a single parameter
-                    return decodeURIComponent(queryString);
-                }
-                
-                return null;
-            }
-            
-            // Function to extract IDs from patterns like [[runn-project-156102]]
-            function extractId(text) {
-                const regex = /\[\[(.*?)\]\]/g;
-                let matches = [];
-                let match;
-                
-                while ((match = regex.exec(text)) !== null) {
-                    // Extract the content inside [[ ]]
-                    const fullPattern = match[1];
-                    
-                    // Extract just the numeric ID
-                    const idMatch = fullPattern.match(/\d+/);
-                    if (idMatch) {
-                        const id = idMatch[0];
-                        const type = fullPattern.split('-')[0]; // e.g., "runn"
-                        const entityType = fullPattern.split('-')[1]; // e.g., "project"
-                        
-                        matches.push({
-                            original: match[0],
-                            fullPattern,
-                            id,
-                            type,
-                            entityType
-                        });
-                    }
-                }
-                
-                return matches;
-            }
-            
-            // Function to handle redirects based on extracted IDs
-            function handleRedirect(url) {
-                if (!url) {
-                    alert(`No redirect parameters found.`);
-                    return;
-                }
-                
-                const extractedIds = extractId(url);
-                
-                if (extractedIds.length === 0) {
-                    alert(`No valid redirect patterns found in: ${url}. Use the pattern <code>[[type-entity-id]]</code> in your URL.`);
-                    return;
-                }
-                
-                // Process the first match (we'll only handle one redirect at a time)
-                const match = extractedIds[0];
-                let redirectUrl = url;
-                
-                // Replace the pattern with just the ID
-                redirectUrl = redirectUrl.replace(match.original, match.id);
-                                
-                // Perform the redirect after a short delay
-                setTimeout(() => {
-                    window.location.href = redirectUrl;
-                }, 10);
-            }
-            
-            // Main execution
-            const urlParam = getUrlParams();
-            handleRedirect(urlParam);
+  <script>
+    // Function to get URL parameters
+    function getUrlParams() {
+      const params = {};
+      const queryString = window.location.search.substring(1);
+
+      if (queryString) {
+        // We're treating the entire query string as a single parameter
+        return decodeURIComponent(queryString);
+      }
+
+      return null;
+    }
+
+    // Function to extract IDs from patterns like [[runn-project-156102]]
+    function extractId(text) {
+      const regex = /\[\[(.*?)\]\]/g;
+      let matches = [];
+      let match;
+
+      while ((match = regex.exec(text)) !== null) {
+        // Extract the content inside [[ ]]
+        const fullPattern = match[1];
+
+        // Extract just the numeric ID
+        const idMatch = fullPattern.match(/\d+/);
+        if (idMatch) {
+          const id = idMatch[0];
+          const type = fullPattern.split('-')[0]; // e.g., "runn"
+          const entityType = fullPattern.split('-')[1]; // e.g., "project"
+
+          matches.push({
+            original: match[0],
+            fullPattern,
+            id,
+            type,
+            entityType
+          });
+        }
+      }
+
+      return matches;
+    }
+
+    // Function to check if URL is allowed based on domain restrictions
+    function isAllowedDomain(url) {
+      try {
+        const urlObj = new URL(url);
+        const hostname = urlObj.hostname.toLowerCase();
+        
+        // List of allowed domains
+        const allowedDomains = [
+          { domain: 'pipedrive.com', allowSubdomains: true },
+          { domain: 'runn.io', allowSubdomains: false },
+          { domain: 'zoho.com', allowSubdomains: true },
+          { domain: 'hurma.work', allowSubdomains: true }
+        ];
+        
+        // Check if the hostname matches any of the allowed domains
+        return allowedDomains.some(({ domain, allowSubdomains }) => {
+          if (allowSubdomains) {
+            return hostname === domain || hostname.endsWith('.' + domain);
+          } else {
+            return hostname === domain;
+          }
         });
-    </script>
+      } catch (e) {
+        console.error('Invalid URL:', e);
+        return false;
+      }
+    }
+
+    // Function to handle redirects based on extracted IDs
+    function handleRedirect(url) {
+      if (!url) {
+        alert(`No redirect parameters found.`);
+        trackEvent('Redirect', 'Failed', 'No parameters');
+        return;
+      }
+
+      const extractedIds = extractId(url);
+
+      if (extractedIds.length === 0) {
+        alert(`No valid redirect patterns found in: ${url}. Use the pattern <code>[[type-entity-id]]</code> in your URL.`);
+        trackEvent('Redirect', 'Failed', 'No valid patterns: ' + url);
+        return;
+      }
+
+      // Process the first match (we'll only handle one redirect at a time)
+      const match = extractedIds[0];
+      let redirectUrl = url;
+
+      // Replace the pattern with just the ID
+      redirectUrl = redirectUrl.replace(match.original, match.id);
+      
+      // Check if the redirect URL is allowed
+      if (!isAllowedDomain(redirectUrl)) {
+        const errorMessage = `Redirect to ${redirectUrl} is not allowed. Only specific domains are permitted.`;
+        alert(errorMessage);
+        trackEvent('Redirect', 'Failed', 'Domain not allowed: ' + new URL(redirectUrl).hostname);
+        console.error(errorMessage);
+        return;
+      }
+
+      // Track successful redirect
+      trackEvent('Redirect', 'Success', `${match.type}-${match.entityType}-${match.id}`);
+
+      // Log the redirect details
+      console.log(`Redirecting to: ${redirectUrl}`);
+      console.log(`Redirect type: ${match.type}, Entity: ${match.entityType}, ID: ${match.id}`);
+
+      // Perform the redirect after a short delay
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 500); // Increased delay to ensure tracking completes
+    }
+
+    // Main execution
+    document.addEventListener('DOMContentLoaded', function() {
+      // Track page view with custom dimension
+      gtag('event', 'page_view', {
+        'page_title': 'Redirect Service',
+        'page_location': window.location.href
+      });
+
+      // Get URL parameters and handle redirect
+      const urlParam = getUrlParams();
+      handleRedirect(urlParam);
+    });
+  </script>
+
+  <!-- Add a simple loading indicator -->
+  <div style="font-family: Arial, sans-serif; text-align: center; margin-top: 100px;">
+    <h1>Redirecting...</h1>
+    <p>Please wait while we redirect you to the requested resource.</p>
+    <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; margin: 20px auto; animation: spin 1s linear infinite;"></div>
+  </div>
+
+  <style>
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </body>
 </html>
