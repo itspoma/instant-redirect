@@ -71,15 +71,15 @@
       try {
         const urlObj = new URL(url);
         const hostname = urlObj.hostname.toLowerCase();
-        
+
         // List of allowed domains
         const allowedDomains = [
           { domain: 'pipedrive.com', allowSubdomains: true },
-          { domain: 'runn.io', allowSubdomains: false },
+          { domain: 'app.runn.io', allowSubdomains: false },
           { domain: 'zoho.com', allowSubdomains: true },
           { domain: 'hurma.work', allowSubdomains: true }
         ];
-        
+
         // Check if the hostname matches any of the allowed domains
         return allowedDomains.some(({ domain, allowSubdomains }) => {
           if (allowSubdomains) {
@@ -116,7 +116,7 @@
 
       // Replace the pattern with just the ID
       redirectUrl = redirectUrl.replace(match.original, match.id);
-      
+
       // Check if the redirect URL is allowed
       if (!isAllowedDomain(redirectUrl)) {
         const errorMessage = `Redirect to ${redirectUrl} is not allowed. Only specific domains are permitted.`;
