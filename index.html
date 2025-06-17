@@ -113,18 +113,31 @@
     }
 
     // Function to handle redirects based on extracted IDs
+    // Helper function to close window after showing alert
+    function showAlertAndCloseWindow(message, eventLabel) {
+      alert(message);
+      trackEvent('Redirect', 'Failed', eventLabel);
+      console.error(message);
+      
+      // Close the window after a short delay to ensure tracking completes
+      setTimeout(() => {
+        window.close();
+        // If window.close() doesn't work (which can happen due to browser security),
+        // redirect to about:blank as a fallback
+        window.location.href = 'about:blank';
+      }, 500);
+    }
+    
     function handleRedirect(url) {
       if (!url) {
-        alert(`No redirect parameters found.`);
-        trackEvent('Redirect', 'Failed', 'No parameters');
+        showAlertAndCloseWindow('No redirect parameters found.', 'No parameters');
         return;
       }
 
       const extractedIds = extractId(url);
 
       if (extractedIds.length === 0) {
-        alert(`No valid redirect patterns found in: ${url}. Use the pattern <code>[[type-entity-id]]</code> in your URL.`);
-        trackEvent('Redirect', 'Failed', 'No valid patterns: ' + url);
+        showAlertAndCloseWindow(`No valid redirect patterns found in: ${url}. Use the pattern [[type-entity-id]] in your URL.`, 'No valid patterns: ' + url);
         return;
       }
 
@@ -138,9 +151,7 @@
       // Check if the redirect URL is allowed
       if (!isAllowedDomain(redirectUrl)) {
         const errorMessage = `Redirect to ${redirectUrl} is not allowed. Only specific domains are permitted.`;
-        alert(errorMessage);
-        trackEvent('Redirect', 'Failed', 'Domain not allowed: ' + new URL(redirectUrl).hostname);
-        console.error(errorMessage);
+        showAlertAndCloseWindow(errorMessage, 'Domain not allowed: ' + new URL(redirectUrl).hostname);
         return;
       }
 
